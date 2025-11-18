@@ -6,6 +6,11 @@ dist
 .vinxi
 app.config.timestamp_*.js
 
+# Locks
+package-lock.json
+pnpm-lock.yaml
+bun.lock
+
 # Environment
 .env
 .env*.local
