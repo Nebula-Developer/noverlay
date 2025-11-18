@@ -13,7 +13,7 @@
 		"noEmit": true,
 		// Type Checking & Safety
 		"strict": true,
-		"types": ["vite/client"],
+		"types": ["vite/client", "bun-types"],
 		// Decorators
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,

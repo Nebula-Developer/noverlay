@@ -7,11 +7,14 @@
 		"start": "vite",
 		"dev": "vite",
 		"build": "vite build",
-		"serve": "vite preview"
+		"serve": "vite preview",
+
+		"check": "biome check"
 	},
 	"license": "MIT",
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.13",
+		"@types/bun": "^1.3.2",
 		"solid-devtools": "^0.34.3",
 		"tailwindcss": "^4.1.13",
 		"typescript": "^5.9.2",
