@@ -1,6 +1,6 @@
 import { createSignal, onCleanup } from "solid-js";
 import type { EventManager } from "./events/events";
-import { EventRegistry } from "./events/types";
+import type { EventRegistry } from "./events/types";
 
 // Helper types to make overloads readable
 type Getter<T> = () => T | undefined;
@@ -22,40 +22,55 @@ type AccessorWithDefault<T> = [() => T, Setter<T>, Off];
  * The final optional `priority` number controls listener priority.
  */
 function _createSignalFromEvent<T>(
-  manager: EventManager<any>,
-  key: string,
-  defaultValue?: T,
-  emitOnSet = false,
-  priority?: number
-) : SignalNoDefault<T> | SignalWithDefault<T> | AccessorNoDefault<T> | AccessorWithDefault<T> {
-  const hasDefault = arguments.length >= 3 && defaultValue !== undefined;
-  const [value, setValue] = createSignal<T | undefined>(hasDefault ? defaultValue : undefined);
+	manager: EventManager<any>,
+	key: string,
+	defaultValue?: T,
+	emitOnSet = false,
+	priority?: number,
+	...rest: any[]
+):
+	| SignalNoDefault<T>
+	| SignalWithDefault<T>
+	| AccessorNoDefault<T>
+	| AccessorWithDefault<T> {
+	const hasDefault = rest.length > 0 || defaultValue !== undefined;
+	const [value, setValue] = createSignal<T | undefined>(
+		hasDefault ? defaultValue : undefined,
+	);
 
-  let internal = false;
+	let internal = false;
 
-  const off = manager.on(key, (v: T) => {
-    if (internal) return;
-    setValue(() => v);
-  }, typeof priority === 'number' ? { priority } : undefined);
+	const off = manager.on(
+		key,
+		(v: T) => {
+			if (internal) return;
+			setValue(() => v);
+		},
+		typeof priority === "number" ? { priority } : undefined,
+	);
 
-  let setter: Setter<T> | undefined;
-  if (emitOnSet) {
-    setter = (v: T) => {
-      // mark internal only during local set so re-emitted events can update
-      internal = true;
-      setValue(() => v);
-      internal = false;
-      manager.emit(key, v);
-    };
-  }
+	let setter: Setter<T> | undefined;
+	if (emitOnSet) {
+		setter = (v: T) => {
+			// mark internal only during local set so re-emitted events can update
+			internal = true;
+			setValue(() => v);
+			internal = false;
+			manager.emit(key, v);
+		};
+	}
 
-  onCleanup(off);
+	onCleanup(off);
 
-  if (setter) {
-    return hasDefault ? ([() => value()!, setter, off] as const) : ([value, setter, off] as const);
-  }
+	if (setter) {
+		return hasDefault
+			? ([() => value()!, setter, off] as const)
+			: ([value, setter, off] as const);
+	}
 
-  return hasDefault ? ([() => value()!, off] as const) : ([value, off] as const);
+	return hasDefault
+		? ([() => value()!, off] as const)
+		: ([value, off] as const);
 }
 
 /**
@@ -69,10 +84,26 @@ function _createSignalFromEvent<T>(
  *  - a signal holding the latest event payload (`() => TR[K] | undefined`)
  *  - a cleanup function to remove the listener
  */
-export function createEventSignal<TR extends EventRegistry, K extends keyof TR>(manager: EventManager<TR>, key: K): readonly [() => TR[K] | undefined, () => void];
-export function createEventSignal<TR extends EventRegistry, K extends keyof TR>(manager: EventManager<TR>, key: K, defaultValue: TR[K]): readonly [() => TR[K], () => void];
-export function createEventSignal<TR extends EventRegistry, K extends keyof TR>(manager: EventManager<TR>, key: K, defaultValue?: TR[K]) {
-  return _createSignalFromEvent<TR[K]>(manager, key as string, defaultValue, false) as any;
+export function createEventSignal<TR extends EventRegistry, K extends keyof TR>(
+	manager: EventManager<TR>,
+	key: K,
+): readonly [() => TR[K] | undefined, () => void];
+export function createEventSignal<TR extends EventRegistry, K extends keyof TR>(
+	manager: EventManager<TR>,
+	key: K,
+	defaultValue: TR[K],
+): readonly [() => TR[K], () => void];
+export function createEventSignal<TR extends EventRegistry, K extends keyof TR>(
+	manager: EventManager<TR>,
+	key: K,
+	defaultValue?: TR[K],
+) {
+	return _createSignalFromEvent<TR[K]>(
+		manager,
+		key as string,
+		defaultValue,
+		false,
+	) as any;
 }
 
 /**
@@ -86,12 +117,22 @@ export function createEventSignal<TR extends EventRegistry, K extends keyof TR>(
  *  - a signal holding the latest event payload (`() => T | undefined`)
  *  - a cleanup function to remove the listener
  */
-export function createCustomEventSignal<T>(manager: EventManager<any>, key: string): readonly [() => T | undefined, () => void];
-export function createCustomEventSignal<T>(manager: EventManager<any>, key: string, defaultValue: T): readonly [() => T, () => void];
-export function createCustomEventSignal<T>(manager: EventManager<any>, key: string, defaultValue?: T) {
-  return _createSignalFromEvent(manager, key, defaultValue, false) as any;
+export function createCustomEventSignal<T>(
+	manager: EventManager<any>,
+	key: string,
+): readonly [() => T | undefined, () => void];
+export function createCustomEventSignal<T>(
+	manager: EventManager<any>,
+	key: string,
+	defaultValue: T,
+): readonly [() => T, () => void];
+export function createCustomEventSignal<T>(
+	manager: EventManager<any>,
+	key: string,
+	defaultValue?: T,
+) {
+	return _createSignalFromEvent(manager, key, defaultValue, false) as any;
 }
-
 
 /**
  * Creates an accessor bound to a typed event from the EventRegistry.
@@ -108,10 +149,31 @@ export function createCustomEventSignal<T>(manager: EventManager<any>, key: stri
  *  - a setter that updates the value and emits the event (`(v: TR[K]) => void`)
  *  - a cleanup function that stops listening to the event
  */
-export function createEventAccessor<TR extends EventRegistry, K extends keyof TR>(manager: EventManager<TR>, key: K): readonly [() => TR[K] | undefined, (v: TR[K]) => void, () => void];
-export function createEventAccessor<TR extends EventRegistry, K extends keyof TR>(manager: EventManager<TR>, key: K, defaultValue: TR[K]): readonly [() => TR[K], (v: TR[K]) => void, () => void];
-export function createEventAccessor<TR extends EventRegistry, K extends keyof TR>(manager: EventManager<TR>, key: K, defaultValue?: TR[K]) {
-  return _createSignalFromEvent<TR[K]>(manager, key as string, defaultValue, true) as any;
+export function createEventAccessor<
+	TR extends EventRegistry,
+	K extends keyof TR,
+>(
+	manager: EventManager<TR>,
+	key: K,
+): readonly [() => TR[K] | undefined, (v: TR[K]) => void, () => void];
+export function createEventAccessor<
+	TR extends EventRegistry,
+	K extends keyof TR,
+>(
+	manager: EventManager<TR>,
+	key: K,
+	defaultValue: TR[K],
+): readonly [() => TR[K], (v: TR[K]) => void, () => void];
+export function createEventAccessor<
+	TR extends EventRegistry,
+	K extends keyof TR,
+>(manager: EventManager<TR>, key: K, defaultValue?: TR[K]) {
+	return _createSignalFromEvent<TR[K]>(
+		manager,
+		key as string,
+		defaultValue,
+		true,
+	) as any;
 }
 
 /**
@@ -129,8 +191,19 @@ export function createEventAccessor<TR extends EventRegistry, K extends keyof TR
  *  - a setter that updates the value and emits the event (`(v: T) => void`)
  *  - a cleanup function that stops listening to the event
  */
-export function createCustomEventAccessor<T>(manager: EventManager<any>, key: string): readonly [() => T | undefined, (v: T) => void, () => void];
-export function createCustomEventAccessor<T>(manager: EventManager<any>, key: string, defaultValue: T): readonly [() => T, (v: T) => void, () => void];
-export function createCustomEventAccessor<T>(manager: EventManager<any>, key: string, defaultValue?: T) {
-  return _createSignalFromEvent<T>(manager, key, defaultValue, true) as any;
+export function createCustomEventAccessor<T>(
+	manager: EventManager<any>,
+	key: string,
+): readonly [() => T | undefined, (v: T) => void, () => void];
+export function createCustomEventAccessor<T>(
+	manager: EventManager<any>,
+	key: string,
+	defaultValue: T,
+): readonly [() => T, (v: T) => void, () => void];
+export function createCustomEventAccessor<T>(
+	manager: EventManager<any>,
+	key: string,
+	defaultValue?: T,
+) {
+	return _createSignalFromEvent<T>(manager, key, defaultValue, true) as any;
 }

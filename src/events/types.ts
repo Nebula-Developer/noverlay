@@ -5,7 +5,7 @@
  * @template P Keys of {@link T} to include in the resulting event map.
  */
 export type ChangeEventNames<T, P extends keyof T> = {
-  [K in keyof Pick<T, P> as `${string & K}-changed`]: T[K];
+	[K in keyof Pick<T, P> as `${string & K}-changed`]: T[K];
 };
 
 /**
@@ -14,46 +14,46 @@ export type ChangeEventNames<T, P extends keyof T> = {
  * @template Value The type of value the listener receives.
  */
 export type ListenerEntry<Value> = {
-  /**
-   * The function called when the event is emitted.
-   */
-  callback: EventCallback<Value>;
+	/**
+	 * The function called when the event is emitted.
+	 */
+	callback: EventCallback<Value>;
 } & Required<ListenerOptions>;
 
 /**
  * Options for registering an event listener.
  */
 export type ListenerOptions = {
-  /**
-   * Priority of the listener (higher runs first).
-   */
-  priority?: number;
-  /**
-   * If true, listener is removed after first call.
-   */
-  once?: boolean;
+	/**
+	 * Priority of the listener (higher runs first).
+	 */
+	priority?: number;
+	/**
+	 * If true, listener is removed after first call.
+	 */
+	once?: boolean;
 };
 
 /**
  * Context object passed to event callbacks, allowing control of propagation and default behavior.
  */
 export type EventContext = {
-  /**
-   * Prevents further listeners from running for this event.
-   */
-  stopPropagation(): void;
-  /**
-   * True if propagation has been stopped.
-   */
-  propagationStopped: boolean;
-  /**
-   * Prevents the default callback from running after listeners.
-   */
-  preventDefault: () => void;
-  /**
-   * True if default has been prevented.
-   */
-  defaultPrevented: boolean;
+	/**
+	 * Prevents further listeners from running for this event.
+	 */
+	stopPropagation(): void;
+	/**
+	 * True if propagation has been stopped.
+	 */
+	propagationStopped: boolean;
+	/**
+	 * Prevents the default callback from running after listeners.
+	 */
+	preventDefault: () => void;
+	/**
+	 * True if default has been prevented.
+	 */
+	defaultPrevented: boolean;
 };
 
 /**
@@ -67,10 +67,10 @@ export type EventRegistry = Record<string, any>;
  * @template T The event registry type.
  */
 export type EventListeners<T extends EventRegistry> = {
-  /**
-   * Array of listeners for each event key.
-   */
-  [K in keyof T]: Array<ListenerEntry<T[K]>>;
+	/**
+	 * Array of listeners for each event key.
+	 */
+	[K in keyof T]: Array<ListenerEntry<T[K]>>;
 };
 
 /**

@@ -1,0 +1,4 @@
+
+bun check --error-on-warnings --staged
+
+bun test

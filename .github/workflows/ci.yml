@@ -21,7 +21,7 @@ jobs:
               with:
                   bun-version: ${{ env.BUN_VERSION }}
             - run: bun install --frozen-lockfile
-            - run: bun check
+            - run: bun check --error-on-warnings
 
     test:
         runs-on: ubuntu-latest
